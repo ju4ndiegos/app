@@ -14,6 +14,7 @@ dependencies = [
     "torchvision>=0.17",
     "scikit-learn>=1.5",
     "pandas>=2.2",
+    "tensorflow-cpu>=2.18",
 ]
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "apk_detector.settings"
