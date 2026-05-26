@@ -74,6 +74,7 @@
 
         <!-- Drop zone -->
         <div class="drop-zone"
+             style="position:relative;overflow:hidden"
              :class="{
                'drop-zone--hover':    state === 'hover',
                'drop-zone--selected': state === 'selected',
@@ -215,7 +216,7 @@
                         {% if direct_form.image_file.errors %}border-red-700/60 bg-red-900/10{% else %}border-[#1e2d3d] bg-[#0d1117]/60 hover:border-violet-700/50 hover:bg-violet-900/10{% endif %}"
                  :class="imgName ? 'border-green-700/50 bg-green-900/10' : ''">
             <input type="file" name="direct-image_file" accept=".png,image/png"
-                   class="absolute inset-0 opacity-0 w-full h-full z-10" style="cursor:pointer"
+                   class="absolute inset-0 opacity-0 w-full h-full" style="cursor:pointer;position:absolute;inset:0;z-index:1"
                    :disabled="uploading"
                    @change="pick($event, 'imgName')">
             <!-- icon -->
@@ -250,7 +251,7 @@
                         {% if direct_form.sequence_file.errors %}border-red-700/60 bg-red-900/10{% else %}border-[#1e2d3d] bg-[#0d1117]/60 hover:border-violet-700/50 hover:bg-violet-900/10{% endif %}"
                  :class="seqName ? 'border-green-700/50 bg-green-900/10' : ''">
             <input type="file" name="direct-sequence_file" accept=".json,application/json"
-                   class="absolute inset-0 opacity-0 w-full h-full z-10" style="cursor:pointer"
+                   class="absolute inset-0 opacity-0 w-full h-full" style="cursor:pointer;position:absolute;inset:0;z-index:1"
                    :disabled="uploading"
                    @change="pick($event, 'seqName')">
             <div class="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
@@ -283,7 +284,7 @@
                         {% if direct_form.tabular_file.errors %}border-red-700/60 bg-red-900/10{% else %}border-[#1e2d3d] bg-[#0d1117]/60 hover:border-violet-700/50 hover:bg-violet-900/10{% endif %}"
                  :class="csvName ? 'border-green-700/50 bg-green-900/10' : ''">
             <input type="file" name="direct-tabular_file" accept=".csv,text/csv"
-                   class="absolute inset-0 opacity-0 w-full h-full z-10" style="cursor:pointer"
+                   class="absolute inset-0 opacity-0 w-full h-full" style="cursor:pointer;position:absolute;inset:0;z-index:1"
                    :disabled="uploading"
                    @change="pick($event, 'csvName')">
             <div class="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
