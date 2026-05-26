@@ -181,5 +181,6 @@ LOGGING = {
         "androguard.core.apk":      {"handlers": ["console"], "level": "ERROR", "propagate": False},
         "androguard.core.bytecodes":{"handlers": ["console"], "level": "ERROR", "propagate": False},
         "androguard.decompile":     {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "pipeline":                 {"handlers": ["console"], "level": "WARNING", "propagate": False},
     },
 }

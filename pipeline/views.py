@@ -2,6 +2,7 @@ import csv
 import hashlib
 import io
 import json
+import logging
 import os
 import tempfile
 
@@ -14,6 +15,8 @@ from pipeline.core.pipeline import run_pipeline
 from pipeline.core.tabular import load_schema
 from pipeline.forms import APKUploadForm, DirectFeaturesForm
 from pipeline.models import AnalysisResult
+
+logger = logging.getLogger(__name__)
 
 _SCHEMA = None
 
@@ -32,11 +35,14 @@ def upload(request):
             apk_file = request.FILES["apk_file"]
             label    = form.cleaned_data["label"]
 
+            logger.warning("APK upload: %s bytes, label=%s", apk_file.size, label)
+
             with tempfile.NamedTemporaryFile(delete=False, suffix=".apk") as tmp:
                 for chunk in apk_file.chunks():
                     tmp.write(chunk)
                 tmp_path = tmp.name
 
+            logger.warning("APK saved to tmp, starting pipeline")
             try:
                 out_dir = settings.MEDIA_ROOT / "results"
                 result  = run_pipeline(
@@ -44,6 +50,11 @@ def upload(request):
                     label=label, split="new", schema=_get_schema(),
                     image_sizes=[64, 256],
                 )
+                logger.warning("Pipeline complete: hash=%s prediction=%s",
+                               result["hash"], result.get("prediction", {}).get("label"))
+            except Exception as exc:
+                logger.exception("Pipeline crashed: %s", exc)
+                raise
             finally:
                 os.unlink(tmp_path)
 
