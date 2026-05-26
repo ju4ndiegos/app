@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,6 +24,15 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 # Suppress absl (used by TF/Keras internally).
 os.environ["ABSL_MIN_LOG_LEVEL"] = "3"
+
+# androguard uses loguru which bypasses Python's logging entirely.
+# Replace its default handler with one that only shows ERROR+.
+try:
+    import loguru
+    loguru.logger.remove()
+    loguru.logger.add(sys.stderr, level="ERROR")
+except Exception:
+    pass
 
 
 # Quick-start development settings - unsuitable for production
