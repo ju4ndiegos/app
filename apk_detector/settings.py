@@ -18,6 +18,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Suppress TensorFlow C++ logs before TF is imported anywhere.
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+# Disable oneDNN custom ops to prevent the early C++ absl startup messages
+# that TF_CPP_MIN_LOG_LEVEL cannot catch (they are written before absl::InitializeLog).
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 # Suppress absl (used by TF/Keras internally).
 os.environ["ABSL_MIN_LOG_LEVEL"] = "3"
 
@@ -48,8 +51,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

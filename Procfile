@@ -1,1 +1,1 @@
-web: python manage.py migrate --run-syncdb && python manage.py collectstatic --noinput && gunicorn apk_detector.wsgi --bind 0.0.0.0:$PORT --workers 1 --timeout 300 --preload
+web: python manage.py migrate --run-syncdb && python manage.py collectstatic --noinput && TF_CPP_MIN_LOG_LEVEL=3 TF_ENABLE_ONEDNN_OPTS=0 ABSL_MIN_LOG_LEVEL=3 gunicorn apk_detector.wsgi --bind 0.0.0.0:$PORT --workers 1 --timeout 300 --preload --log-level warning
