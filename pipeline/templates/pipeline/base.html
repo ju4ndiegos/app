@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}DMLDroid{% endblock %} — APK Threat Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            adware:  '#f97316',
+            banking: '#ef4444',
+            benign:  '#22c55e',
+            riskware:'#2776dc',
+            sms:     '#a855f7',
+            unknown: '#6b7280',
+            surface: '#0d1117',
+            panel:   '#161b27',
+            border:  '#1e2d3d',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{% static 'pipeline/css/custom.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-surface text-slate-200 min-h-screen font-sans flex flex-col antialiased" style="font-family: Inter, system-ui, sans-serif;">
+
+  <!-- ── Navigation ──────────────────────────────── -->
+  <nav class="glass-nav sticky top-0 z-50 px-5 py-3 flex items-center justify-between">
+    <a href="{% url 'upload' %}" class="flex items-center gap-2.5 group">
+      <div class="w-8 h-8 rounded-lg bg-violet-900/40 border border-violet-700/50 flex items-center justify-center">
+        <svg class="w-4.5 h-4.5 text-violet-400" style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+            d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+        </svg>
+      </div>
+      <span class="font-semibold text-white tracking-tight group-hover:text-violet-300 transition-colors">DMLDroid</span>
+      <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-900/40 text-violet-400 border border-violet-800/50 uppercase tracking-widest hidden sm:inline">Beta</span>
+    </a>
+    <div class="flex items-center gap-4">
+      <span class="text-xs text-slate-500 hidden md:block">Android Malware Classifier</span>
+      <a href="{% url 'upload' %}"
+         class="text-xs px-3.5 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium transition-colors">
+        New Scan
+      </a>
+    </div>
+  </nav>
+
+  <!-- ── Main content ────────────────────────────── -->
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% comment %} <!-- ── Footer ──────────────────────────────────── -->
+  <footer class="border-t border-[#1e2d3d] py-5 text-center text-xs text-slate-600">
+    DMLDroid &middot;
+    <a href="https://arxiv.org/abs/2509.11187" target="_blank" rel="noopener"
+       class="hover:text-slate-400 transition-colors">arXiv:2509.11187</a>
+    &middot; CICMalDroid 2020
+  </footer> {% endcomment %}
+
+  <!-- Chart.js (loaded before block scripts so chart init can run immediately) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <!-- Page-specific scripts (define Alpine components BEFORE Alpine loads) -->
+  {% block scripts %}{% endblock %}
+
+  <!-- Alpine.js loads last with defer; by then uploadZone() is defined globally -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
+</body>
+</html>

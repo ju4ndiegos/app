@@ -1,0 +1,199 @@
+{% extends "pipeline/base.html" %}
+{% load static %}
+{% block title %}Scan APK{% endblock %}
+
+{% block content %}
+<div class="relative overflow-hidden" style="min-height: calc(100vh - 8rem);">
+
+  <!-- Animated cyber-grid background -->
+  <div class="cyber-grid absolute inset-0 z-0"></div>
+  <div class="bg-vignette absolute inset-0 z-0"></div>
+
+  <div class="relative z-10 flex flex-col items-center justify-center px-4 py-14 sm:py-20">
+
+    <!-- ── Hero ──────────────────────────────────── -->
+    <div class="text-center mb-10 max-w-3xl mx-auto">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-900/30 border border-violet-800/50 text-violet-400 text-[11px] uppercase tracking-widest mb-5">
+        <span class="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse"></span>
+        Multimodal ML Detection
+      </div>
+
+      <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-4">
+        Threat Intelligence
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-purple-400">
+          Scanner
+        </span>
+      </h1>
+      <p class="text-slate-200 text-base sm:text-lg font-medium leading-relaxed">
+        Multimodal Android malware analysis &middot; DEX image &middot; API sequences &middot; Manifest
+      </p>
+
+      <!-- Trust pills -->
+      <div class="flex flex-wrap items-center justify-center gap-2 mt-5">
+        <span class="text-xs px-3 py-1 rounded-full border border-violet-800/60 bg-violet-900/20 text-violet-300">3 neural models</span>
+        <span class="text-xs px-3 py-1 rounded-full border border-[#2d3748] bg-[#1a2035] text-slate-300">400 manifest features</span>
+        <span class="text-xs px-3 py-1 rounded-full border border-[#2d3748] bg-[#1a2035] text-slate-300">5 malware classes</span>
+        <span class="text-xs px-3 py-1 rounded-full border border-[#2d3748] bg-[#1a2035] text-slate-300">max 100 MB</span>
+      </div>
+    </div>
+
+    <!-- ── Upload card ────────────────────────────── -->
+    <div class="glass-card w-full max-w-xl" x-data="uploadZone()">
+      <form method="post" enctype="multipart/form-data" id="upload-form"
+            @submit.prevent="handleSubmit($event)">
+        {% csrf_token %}
+
+        <!-- Drop zone -->
+        <div class="drop-zone"
+             :class="{
+               'drop-zone--hover':    state === 'hover',
+               'drop-zone--selected': state === 'selected',
+               'drop-zone--uploading':state === 'uploading'
+             }"
+             @dragover.prevent="if (state !== 'uploading') state = 'hover'"
+             @dragleave.prevent="if (state === 'hover') state = 'idle'"
+             @drop.prevent="if (state !== 'uploading') handleDrop($event)">
+
+          <!-- Real file input (invisible, full-area clickable) -->
+          <input type="file" name="apk_file" id="id_apk_file" accept=".apk" required
+                 class="absolute inset-0 opacity-0 w-full h-full z-10"
+                 style="cursor: pointer;"
+                 :disabled="state === 'uploading'"
+                 @change="handleFile($event)">
+
+          <!-- STATE: idle / hover -->
+          <div class="flex flex-col items-center gap-3 py-10 pointer-events-none select-none w-full"
+               x-show="state === 'idle' || state === 'hover'">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center transition-colors"
+                 :class="state === 'hover'
+                   ? 'bg-violet-900/50 border border-violet-500'
+                   : 'bg-violet-900/25 border border-violet-800/40'">
+              <svg style="width:28px;height:28px;color:#a78bfa" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+              </svg>
+            </div>
+            <div class="text-center">
+              <p class="text-slate-200 font-medium text-sm">
+                Drop your <code class="text-violet-300 bg-violet-900/40 px-1.5 rounded text-xs font-mono">.apk</code> here
+              </p>
+              <p class="text-slate-400 text-xs mt-1">or click to browse &middot; up to 100 MB</p>
+            </div>
+          </div>
+
+          <!-- STATE: selected -->
+          <div class="flex flex-col items-center gap-3 py-10 pointer-events-none select-none w-full"
+               x-show="state === 'selected'" style="display:none">
+            <div class="w-14 h-14 rounded-2xl bg-green-900/30 border border-green-700/50 flex items-center justify-center">
+              <svg style="width:28px;height:28px;color:#4ade80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div class="text-center">
+              <p class="text-green-400 font-semibold text-sm truncate max-w-xs" x-text="fileName"></p>
+              <p class="text-slate-500 text-xs mt-0.5" x-text="fileSize"></p>
+              <span class="inline-flex items-center gap-1.5 mt-2 text-[11px] px-2.5 py-0.5 rounded-full bg-green-900/30 border border-green-800/50 text-green-400">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                Ready to scan
+              </span>
+            </div>
+          </div>
+
+          <!-- STATE: uploading -->
+          <div class="relative w-full py-10 overflow-hidden pointer-events-none select-none"
+               x-show="state === 'uploading'" style="display:none">
+            <div class="scan-line"></div>
+            <div class="flex flex-col items-center gap-2.5 relative z-10">
+              <div class="w-10 h-10 rounded-xl bg-violet-900/30 border border-violet-700/50 flex items-center justify-center">
+                <svg style="width:20px;height:20px;color:#a78bfa" class="animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+              </div>
+              <p class="text-violet-300 text-sm font-medium" x-text="currentStage"></p>
+              <p class="text-slate-600 text-xs">Full analysis typically takes 20–60 s</p>
+            </div>
+          </div>
+
+        </div><!-- /drop-zone -->
+
+        <!-- File field errors -->
+        {% if form.apk_file.errors %}
+          <div class="mt-2 text-red-400 text-sm">{{ form.apk_file.errors }}</div>
+        {% endif %}
+        <div x-show="error" style="display:none"
+             class="mt-2 text-red-400 text-xs" x-text="error"></div>
+
+        <!-- ── Class selector ──────────────────── -->
+        <p class="text-xs text-slate-400 uppercase tracking-widest mt-5 mb-2">Known class <span class="normal-case text-slate-600">(optional)</span></p>
+
+        <!-- Hidden Django select (keeps POST value correct) -->
+        <div class="sr-only">{{ form.label }}</div>
+
+        <!-- Visual radio cards -->
+        <div x-data="{ selected: '{{ form.label.value|default:'unknown' }}' }"
+             class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+          {% for value, display in form.label.field.choices %}
+          <label class="radio-card"
+                 :class="selected === '{{ value }}' ? 'radio-card--active' : ''"
+                 @click="selected = '{{ value }}'; document.getElementById('id_label').value = '{{ value }}'">
+            <input type="radio" name="_label_vis" value="{{ value }}" class="sr-only">
+            <span class="class-dot" style="background:{% if value == 'adware' %}#f97316{% elif value == 'banking' %}#ef4444{% elif value == 'benign' %}#22c55e{% elif value == 'riskware' %}#f59e0b{% elif value == 'sms' %}#a855f7{% else %}#6b7280{% endif %}"></span>
+            <span class="text-xs font-medium text-slate-300 leading-tight"
+                  :class="selected === '{{ value }}' ? '!text-white' : ''">{% if value == 'sms' %}SMS{% else %}{{ display }}{% endif %}</span>
+          </label>
+          {% endfor %}
+        </div>
+
+        <!-- ── Submit button ───────────────────── -->
+        <button type="submit"
+                x-show="state !== 'uploading'"
+                class="w-full mt-5 py-3.5 rounded-xl font-semibold text-white text-sm
+                       bg-gradient-to-r from-violet-600 to-purple-600
+                       hover:from-violet-500 hover:to-purple-500
+                       transition-all duration-200
+                       shadow-lg shadow-violet-900/40
+                       hover:-translate-y-0.5 active:translate-y-0 active:shadow-none
+                       focus:outline-none focus:ring-2 focus:ring-violet-500/50">
+          Analyze APK
+        </button>
+
+        <div x-show="state === 'uploading'" style="display:none"
+             class="w-full mt-5 py-3.5 rounded-xl text-center text-slate-500 text-sm border border-[#1e2d3d]">
+          Analysis in progress…
+        </div>
+
+      </form>
+    </div><!-- /upload card -->
+
+    <!-- ── How it works ───────────────────────────── -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 w-full max-w-xl">
+
+      <div class="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-[#1e2d3d] bg-[#161b27]/60">
+        <div class="w-9 h-9 rounded-xl bg-violet-900/30 border border-violet-800/40 flex items-center justify-center text-violet-400 font-bold text-sm">1</div>
+        <p class="text-sm font-medium text-slate-300">Upload APK</p>
+        <p class="text-xs text-slate-400 leading-relaxed">Drag & drop or browse your .apk file (up to 100 MB)</p>
+      </div>
+
+      <div class="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-[#1e2d3d] bg-[#161b27]/60">
+        <div class="w-9 h-9 rounded-xl bg-violet-900/30 border border-violet-800/40 flex items-center justify-center text-violet-400 font-bold text-sm">2</div>
+        <p class="text-sm font-medium text-slate-300">Feature Extraction</p>
+        <p class="text-xs text-slate-400 leading-relaxed">DEX image encoding, API call graph, manifest parsing</p>
+      </div>
+
+      <div class="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-[#1e2d3d] bg-[#161b27]/60">
+        <div class="w-9 h-9 rounded-xl bg-violet-900/30 border border-violet-800/40 flex items-center justify-center text-violet-400 font-bold text-sm">3</div>
+        <p class="text-sm font-medium text-slate-300">Ensemble Classification</p>
+        <p class="text-xs text-slate-400 leading-relaxed">MLP + CNN-V3 + BiLSTM weighted ensemble prediction</p>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'pipeline/js/upload.js' %}"></script>
+{% endblock %}
