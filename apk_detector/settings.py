@@ -10,10 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Suppress TensorFlow C++ logs before TF is imported anywhere.
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
+# Suppress absl (used by TF/Keras internally).
+os.environ.setdefault("ABSL_MIN_LOG_LEVEL", "3")
 
 
 # Quick-start development settings - unsuitable for production
@@ -23,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-#(s#a25c@e)ws*_m^c6b-%d@i=%d6j8q40t6se+b!)&bg0v)5#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = ["https://app-production-9178.up.railway.app"]
@@ -128,3 +134,29 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 104_857_600
 FILE_UPLOAD_MAX_MEMORY_SIZE  = 104_857_600
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ── Logging ────────────────────────────────────────────────────────────────────
+# Keep only WARNING+ in production to avoid Railway's rate-limit.
+# Libraries like TensorFlow, androguard, and absl are extremely chatty at INFO.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+    "loggers": {
+        # Django request errors (500s) still reach the console.
+        "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        # Silence the heaviest offenders explicitly.
+        "tensorflow":     {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "absl":           {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "androguard":     {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "androguard.core":{"handlers": ["console"], "level": "ERROR", "propagate": False},
+    },
+}

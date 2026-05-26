@@ -1,12 +1,18 @@
+import csv
+import hashlib
+import io
+import json
 import os
 import tempfile
 
 from django.conf import settings
 from django.shortcuts import redirect, render, get_object_or_404
+from PIL import Image
 
+from pipeline.core.ensemble import predict_ensemble
 from pipeline.core.pipeline import run_pipeline
 from pipeline.core.tabular import load_schema
-from pipeline.forms import APKUploadForm
+from pipeline.forms import APKUploadForm, DirectFeaturesForm
 from pipeline.models import AnalysisResult
 
 _SCHEMA = None
@@ -64,7 +70,75 @@ def upload(request):
     else:
         form = APKUploadForm()
 
-    return render(request, "pipeline/upload.html", {"form": form})
+    return render(request, "pipeline/upload.html", {
+        "form": form,
+        "direct_form": DirectFeaturesForm(prefix="direct"),
+        "active_tab": "apk",
+    })
+
+
+def direct_upload(request):
+    if request.method != "POST":
+        return redirect("upload")
+
+    form = DirectFeaturesForm(request.POST, request.FILES, prefix="direct")
+    if not form.is_valid():
+        return render(request, "pipeline/upload.html", {
+            "form": APKUploadForm(),
+            "direct_form": form,
+            "active_tab": "features",
+        })
+
+    img_file  = request.FILES["direct-image_file"]
+    seq_file  = request.FILES["direct-sequence_file"]
+    tab_file  = request.FILES["direct-tabular_file"]
+    label     = form.cleaned_data["label"]
+
+    try:
+        img_bytes = img_file.read()
+        h = hashlib.sha256(img_bytes).hexdigest()
+
+        out_dir = settings.MEDIA_ROOT / "results"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        img_path = out_dir / f"{h}.png"
+        Image.open(io.BytesIO(img_bytes)).convert("RGB").save(str(img_path))
+        rel_img = os.path.relpath(str(img_path), settings.MEDIA_ROOT)
+
+        seq_raw = json.loads(seq_file.read().decode())
+        if isinstance(seq_raw, list):
+            sequence = " ".join(str(t) for t in seq_raw)
+        elif isinstance(seq_raw, dict):
+            val = seq_raw.get("sequence") or seq_raw.get("tokens") or seq_raw.get("api_calls") or ""
+            sequence = " ".join(val) if isinstance(val, list) else str(val)
+        else:
+            sequence = str(seq_raw)
+
+        _SKIP = {"apk_name", "Class", "split"}
+        reader = csv.DictReader(io.StringIO(tab_file.read().decode()))
+        row = next(reader)
+        tab_row = {k: int(float(v)) for k, v in row.items() if k not in _SKIP}
+
+        prediction = predict_ensemble(tab_row, str(img_path), sequence)
+
+    except Exception as exc:
+        return render(request, "pipeline/upload.html", {
+            "form": APKUploadForm(),
+            "direct_form": form,
+            "active_tab": "features",
+            "direct_error": f"Could not process files: {exc}",
+        })
+
+    AnalysisResult.objects.update_or_create(
+        apk_hash=h,
+        defaults={
+            "label":            label,
+            "image":            rel_img,
+            "sequence_preview": " ".join(sequence.split()[:100]),
+            "tabular_json":     tab_row,
+            "prediction_json":  prediction,
+        },
+    )
+    return redirect("result", apk_hash=h)
 
 
 def result(request, apk_hash):

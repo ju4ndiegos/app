@@ -11,9 +11,16 @@ Weights live at: app/pipeline/weights/
 
 from __future__ import annotations
 
+import logging
+import os
 import pickle
 from pathlib import Path
 from typing import Any
+
+# Suppress TF/Keras Python-level logs before the library is imported.
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
+logging.getLogger("tensorflow").setLevel(logging.ERROR)
+logging.getLogger("absl").setLevel(logging.ERROR)
 
 import numpy as np
 import pandas as pd

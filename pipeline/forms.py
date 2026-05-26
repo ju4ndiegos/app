@@ -12,3 +12,14 @@ class APKUploadForm(forms.Form):
         initial="unknown",
         label="Known class (optional)",
     )
+
+
+class DirectFeaturesForm(forms.Form):
+    image_file = forms.FileField(label="DEX Image (PNG, 64×64)")
+    sequence_file = forms.FileField(label="API Sequence (JSON)")
+    tabular_file = forms.FileField(label="Manifest Features (CSV)")
+    label = forms.ChoiceField(
+        choices=MALWARE_CLASSES,
+        initial="unknown",
+        label="Known class (optional)",
+    )

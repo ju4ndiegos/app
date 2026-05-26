@@ -1,3 +1,34 @@
+function featuresZone() {
+  return {
+    imgName: '', seqName: '', csvName: '',
+    uploading: false,
+    error: '',
+
+    pick(e, field) {
+      const f = e.target.files[0];
+      if (!f) return;
+      this[field] = f.name;
+      this.error = '';
+    },
+
+    handleSubmit(e) {
+      if (!this.imgName || !this.seqName || !this.csvName) {
+        this.error = 'Please select all three files before submitting.';
+        return;
+      }
+      this.uploading = true;
+      this.error = '';
+      e.target.submit();
+    },
+
+    _fmt(b) {
+      if (b >= 1048576) return (b / 1048576).toFixed(1) + ' MB';
+      if (b >= 1024)    return (b / 1024).toFixed(0) + ' KB';
+      return b + ' B';
+    },
+  };
+}
+
 function uploadZone() {
   return {
     state: 'idle',   // 'idle' | 'hover' | 'selected' | 'uploading'

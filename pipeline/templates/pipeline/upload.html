@@ -9,7 +9,8 @@
   <div class="cyber-grid absolute inset-0 z-0"></div>
   <div class="bg-vignette absolute inset-0 z-0"></div>
 
-  <div class="relative z-10 flex flex-col items-center justify-center px-4 py-14 sm:py-20">
+  <div class="relative z-10 flex flex-col items-center justify-center px-4 py-14 sm:py-20"
+       x-data="{ tab: '{{ active_tab|default:'apk' }}' }">
 
     <!-- ── Hero ──────────────────────────────────── -->
     <div class="text-center mb-10 max-w-3xl mx-auto">
@@ -37,8 +38,36 @@
       </div>
     </div>
 
-    <!-- ── Upload card ────────────────────────────── -->
-    <div class="glass-card w-full max-w-xl" x-data="uploadZone()">
+    <!-- ── Tab switcher ──────────────────────────── -->
+    <div class="flex rounded-xl border border-[#1e2d3d] bg-[#0d1117]/80 p-1 mb-6 w-full max-w-xl gap-1">
+      <button @click="tab = 'apk'"
+              :class="tab === 'apk'
+                ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/40'
+                : 'text-slate-400 hover:text-slate-200'"
+              class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200">
+        <svg style="width:15px;height:15px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+        </svg>
+        APK File
+      </button>
+      <button @click="tab = 'features'"
+              :class="tab === 'features'
+                ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/40'
+                : 'text-slate-400 hover:text-slate-200'"
+              class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200">
+        <svg style="width:15px;height:15px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+            d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+        </svg>
+        Pre-extracted Features
+      </button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         TAB: APK Upload
+    ══════════════════════════════════════════════════ -->
+    <div x-show="tab === 'apk'" class="glass-card w-full max-w-xl" x-data="uploadZone()">
       <form method="post" enctype="multipart/form-data" id="upload-form"
             @submit.prevent="handleSubmit($event)">
         {% csrf_token %}
@@ -54,14 +83,13 @@
              @dragleave.prevent="if (state === 'hover') state = 'idle'"
              @drop.prevent="if (state !== 'uploading') handleDrop($event)">
 
-          <!-- Real file input (invisible, full-area clickable) -->
           <input type="file" name="apk_file" id="id_apk_file" accept=".apk" required
                  class="absolute inset-0 opacity-0 w-full h-full z-10"
                  style="cursor: pointer;"
                  :disabled="state === 'uploading'"
                  @change="handleFile($event)">
 
-          <!-- STATE: idle / hover -->
+          <!-- idle / hover -->
           <div class="flex flex-col items-center gap-3 py-10 pointer-events-none select-none w-full"
                x-show="state === 'idle' || state === 'hover'">
             <div class="w-14 h-14 rounded-2xl flex items-center justify-center transition-colors"
@@ -81,7 +109,7 @@
             </div>
           </div>
 
-          <!-- STATE: selected -->
+          <!-- selected -->
           <div class="flex flex-col items-center gap-3 py-10 pointer-events-none select-none w-full"
                x-show="state === 'selected'" style="display:none">
             <div class="w-14 h-14 rounded-2xl bg-green-900/30 border border-green-700/50 flex items-center justify-center">
@@ -100,7 +128,7 @@
             </div>
           </div>
 
-          <!-- STATE: uploading -->
+          <!-- uploading -->
           <div class="relative w-full py-10 overflow-hidden pointer-events-none select-none"
                x-show="state === 'uploading'" style="display:none">
             <div class="scan-line"></div>
@@ -118,20 +146,15 @@
 
         </div><!-- /drop-zone -->
 
-        <!-- File field errors -->
         {% if form.apk_file.errors %}
           <div class="mt-2 text-red-400 text-sm">{{ form.apk_file.errors }}</div>
         {% endif %}
         <div x-show="error" style="display:none"
              class="mt-2 text-red-400 text-xs" x-text="error"></div>
 
-        <!-- ── Class selector ──────────────────── -->
+        <!-- Class selector -->
         <p class="text-xs text-slate-400 uppercase tracking-widest mt-5 mb-2">Known class <span class="normal-case text-slate-600">(optional)</span></p>
-
-        <!-- Hidden Django select (keeps POST value correct) -->
         <div class="sr-only">{{ form.label }}</div>
-
-        <!-- Visual radio cards -->
         <div x-data="{ selected: '{{ form.label.value|default:'unknown' }}' }"
              class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
           {% for value, display in form.label.field.choices %}
@@ -146,7 +169,7 @@
           {% endfor %}
         </div>
 
-        <!-- ── Submit button ───────────────────── -->
+        <!-- Submit -->
         <button type="submit"
                 x-show="state !== 'uploading'"
                 class="w-full mt-5 py-3.5 rounded-xl font-semibold text-white text-sm
@@ -158,35 +181,225 @@
                        focus:outline-none focus:ring-2 focus:ring-violet-500/50">
           Analyze APK
         </button>
-
         <div x-show="state === 'uploading'" style="display:none"
              class="w-full mt-5 py-3.5 rounded-xl text-center text-slate-500 text-sm border border-[#1e2d3d]">
           Analysis in progress…
         </div>
 
       </form>
-    </div><!-- /upload card -->
+    </div><!-- /apk card -->
+
+    <!-- ══════════════════════════════════════════════
+         TAB: Pre-extracted Features
+    ══════════════════════════════════════════════════ -->
+    <div x-show="tab === 'features'" class="glass-card w-full max-w-xl" style="display:none"
+         x-data="featuresZone()">
+      <form method="post" action="{% url 'direct_upload' %}" enctype="multipart/form-data"
+            @submit.prevent="handleSubmit($event)">
+        {% csrf_token %}
+
+        <!-- Section label -->
+        <p class="text-xs text-slate-400 uppercase tracking-widest mb-4">Upload pre-extracted modalities</p>
+
+        {% if direct_error %}
+          <div class="mb-4 px-3 py-2.5 rounded-lg border border-red-800/60 bg-red-900/20 text-red-400 text-xs">
+            {{ direct_error }}
+          </div>
+        {% endif %}
+
+        <!-- Three file slots -->
+        <div class="flex flex-col gap-3">
+
+          <!-- Image PNG -->
+          <label class="relative flex items-center gap-3 px-4 py-3.5 rounded-xl border cursor-pointer transition-all duration-200
+                        {% if direct_form.image_file.errors %}border-red-700/60 bg-red-900/10{% else %}border-[#1e2d3d] bg-[#0d1117]/60 hover:border-violet-700/50 hover:bg-violet-900/10{% endif %}"
+                 :class="imgName ? 'border-green-700/50 bg-green-900/10' : ''">
+            <input type="file" name="direct-image_file" accept=".png,image/png"
+                   class="absolute inset-0 opacity-0 w-full h-full z-10" style="cursor:pointer"
+                   :disabled="uploading"
+                   @change="pick($event, 'imgName')">
+            <!-- icon -->
+            <div class="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+                 :class="imgName ? 'bg-green-900/30 border border-green-700/50' : 'bg-violet-900/25 border border-violet-800/40'">
+              <svg style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                   :style="imgName ? 'color:#4ade80' : 'color:#a78bfa'">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15A2.25 2.25 0 002.25 6.75v10.5A2.25 2.25 0 004.5 19.5z"/>
+              </svg>
+            </div>
+            <!-- text -->
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold text-slate-300 uppercase tracking-wider">DEX Image</p>
+              <p class="text-xs mt-0.5 truncate"
+                 :class="imgName ? 'text-green-400' : 'text-slate-500'">
+                <span x-show="!imgName">64&times;64 RGB PNG &middot; click to browse</span>
+                <span x-show="imgName" x-text="imgName" style="display:none"></span>
+              </p>
+            </div>
+            <span x-show="imgName"
+                  class="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-green-900/30 border border-green-800/50 text-green-400"
+                  style="display:none">ready</span>
+            <code class="shrink-0 text-[10px] text-slate-600 font-mono" x-show="!imgName">.png</code>
+          </label>
+          {% if direct_form.image_file.errors %}
+            <p class="text-red-400 text-xs -mt-2 ml-1">{{ direct_form.image_file.errors|join:", " }}</p>
+          {% endif %}
+
+          <!-- Sequence JSON -->
+          <label class="relative flex items-center gap-3 px-4 py-3.5 rounded-xl border cursor-pointer transition-all duration-200
+                        {% if direct_form.sequence_file.errors %}border-red-700/60 bg-red-900/10{% else %}border-[#1e2d3d] bg-[#0d1117]/60 hover:border-violet-700/50 hover:bg-violet-900/10{% endif %}"
+                 :class="seqName ? 'border-green-700/50 bg-green-900/10' : ''">
+            <input type="file" name="direct-sequence_file" accept=".json,application/json"
+                   class="absolute inset-0 opacity-0 w-full h-full z-10" style="cursor:pointer"
+                   :disabled="uploading"
+                   @change="pick($event, 'seqName')">
+            <div class="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+                 :class="seqName ? 'bg-green-900/30 border border-green-700/50' : 'bg-violet-900/25 border border-violet-800/40'">
+              <svg style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                   :style="seqName ? 'color:#4ade80' : 'color:#a78bfa'">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"/>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold text-slate-300 uppercase tracking-wider">API Sequence</p>
+              <p class="text-xs mt-0.5 truncate"
+                 :class="seqName ? 'text-green-400' : 'text-slate-500'">
+                <span x-show="!seqName">Space-separated tokens JSON &middot; click to browse</span>
+                <span x-show="seqName" x-text="seqName" style="display:none"></span>
+              </p>
+            </div>
+            <span x-show="seqName"
+                  class="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-green-900/30 border border-green-800/50 text-green-400"
+                  style="display:none">ready</span>
+            <code class="shrink-0 text-[10px] text-slate-600 font-mono" x-show="!seqName">.json</code>
+          </label>
+          {% if direct_form.sequence_file.errors %}
+            <p class="text-red-400 text-xs -mt-2 ml-1">{{ direct_form.sequence_file.errors|join:", " }}</p>
+          {% endif %}
+
+          <!-- Tabular CSV -->
+          <label class="relative flex items-center gap-3 px-4 py-3.5 rounded-xl border cursor-pointer transition-all duration-200
+                        {% if direct_form.tabular_file.errors %}border-red-700/60 bg-red-900/10{% else %}border-[#1e2d3d] bg-[#0d1117]/60 hover:border-violet-700/50 hover:bg-violet-900/10{% endif %}"
+                 :class="csvName ? 'border-green-700/50 bg-green-900/10' : ''">
+            <input type="file" name="direct-tabular_file" accept=".csv,text/csv"
+                   class="absolute inset-0 opacity-0 w-full h-full z-10" style="cursor:pointer"
+                   :disabled="uploading"
+                   @change="pick($event, 'csvName')">
+            <div class="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+                 :class="csvName ? 'bg-green-900/30 border border-green-700/50' : 'bg-violet-900/25 border border-violet-800/40'">
+              <svg style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                   :style="csvName ? 'color:#4ade80' : 'color:#a78bfa'">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m17.25 2.625H18c-.621 0-1.125-.504-1.125-1.125M20.625 19.5h-1.5m1.5 0c.621 0 1.125-.504 1.125-1.125V5.625m-1.125 12.75v-1.5c0-.621-.504-1.125-1.125-1.125M6 18.375V5.625m0 0c0-.621.504-1.125 1.125-1.125h9.75c.621 0 1.125.504 1.125 1.125M6 5.625v1.5C6 7.746 6.504 8.25 7.125 8.25m-1.5-2.625h13.5m-13.5 0H7.125m9.75 2.625H7.125M6 7.125V8.25m11.625-2.625v1.5c0 .621-.504 1.125-1.125 1.125m0 0H7.125"/>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Manifest Features</p>
+              <p class="text-xs mt-0.5 truncate"
+                 :class="csvName ? 'text-green-400' : 'text-slate-500'">
+                <span x-show="!csvName">400 binary features CSV &middot; click to browse</span>
+                <span x-show="csvName" x-text="csvName" style="display:none"></span>
+              </p>
+            </div>
+            <span x-show="csvName"
+                  class="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-green-900/30 border border-green-800/50 text-green-400"
+                  style="display:none">ready</span>
+            <code class="shrink-0 text-[10px] text-slate-600 font-mono" x-show="!csvName">.csv</code>
+          </label>
+          {% if direct_form.tabular_file.errors %}
+            <p class="text-red-400 text-xs -mt-2 ml-1">{{ direct_form.tabular_file.errors|join:", " }}</p>
+          {% endif %}
+
+        </div><!-- /file slots -->
+
+        <!-- Validation error -->
+        <div x-show="error" style="display:none"
+             class="mt-3 text-red-400 text-xs" x-text="error"></div>
+
+        <!-- Class selector -->
+        <p class="text-xs text-slate-400 uppercase tracking-widest mt-5 mb-2">Known class <span class="normal-case text-slate-600">(optional)</span></p>
+        <div class="sr-only">{{ direct_form.label }}</div>
+        <div x-data="{ selected: '{{ direct_form.label.value|default:'unknown' }}' }"
+             class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+          {% for value, display in direct_form.label.field.choices %}
+          <label class="radio-card"
+                 :class="selected === '{{ value }}' ? 'radio-card--active' : ''"
+                 @click="selected = '{{ value }}'; document.getElementById('id_direct-label').value = '{{ value }}'">
+            <input type="radio" name="_direct_label_vis" value="{{ value }}" class="sr-only">
+            <span class="class-dot" style="background:{% if value == 'adware' %}#f97316{% elif value == 'banking' %}#ef4444{% elif value == 'benign' %}#22c55e{% elif value == 'riskware' %}#f59e0b{% elif value == 'sms' %}#a855f7{% else %}#6b7280{% endif %}"></span>
+            <span class="text-xs font-medium text-slate-300 leading-tight"
+                  :class="selected === '{{ value }}' ? '!text-white' : ''">{% if value == 'sms' %}SMS{% else %}{{ display }}{% endif %}</span>
+          </label>
+          {% endfor %}
+        </div>
+
+        <!-- Submit -->
+        <button type="submit"
+                x-show="!uploading"
+                class="w-full mt-5 py-3.5 rounded-xl font-semibold text-white text-sm
+                       bg-gradient-to-r from-violet-600 to-purple-600
+                       hover:from-violet-500 hover:to-purple-500
+                       transition-all duration-200
+                       shadow-lg shadow-violet-900/40
+                       hover:-translate-y-0.5 active:translate-y-0 active:shadow-none
+                       focus:outline-none focus:ring-2 focus:ring-violet-500/50">
+          Run Ensemble
+        </button>
+        <div x-show="uploading" style="display:none"
+             class="w-full mt-5 py-3.5 rounded-xl text-center flex items-center justify-center gap-2 text-slate-400 text-sm border border-[#1e2d3d]">
+          <svg style="width:16px;height:16px" class="animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Running ensemble models…
+        </div>
+
+      </form>
+    </div><!-- /features card -->
 
     <!-- ── How it works ───────────────────────────── -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 w-full max-w-xl">
 
-      <div class="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-[#1e2d3d] bg-[#161b27]/60">
-        <div class="w-9 h-9 rounded-xl bg-violet-900/30 border border-violet-800/40 flex items-center justify-center text-violet-400 font-bold text-sm">1</div>
-        <p class="text-sm font-medium text-slate-300">Upload APK</p>
-        <p class="text-xs text-slate-400 leading-relaxed">Drag & drop or browse your .apk file (up to 100 MB)</p>
-      </div>
+      <template x-if="tab === 'apk'">
+        <div class="contents">
+          <div class="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-[#1e2d3d] bg-[#161b27]/60">
+            <div class="w-9 h-9 rounded-xl bg-violet-900/30 border border-violet-800/40 flex items-center justify-center text-violet-400 font-bold text-sm">1</div>
+            <p class="text-sm font-medium text-slate-300">Upload APK</p>
+            <p class="text-xs text-slate-400 leading-relaxed">Drag & drop or browse your .apk file (up to 100 MB)</p>
+          </div>
+          <div class="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-[#1e2d3d] bg-[#161b27]/60">
+            <div class="w-9 h-9 rounded-xl bg-violet-900/30 border border-violet-800/40 flex items-center justify-center text-violet-400 font-bold text-sm">2</div>
+            <p class="text-sm font-medium text-slate-300">Feature Extraction</p>
+            <p class="text-xs text-slate-400 leading-relaxed">DEX image encoding, API call graph, manifest parsing</p>
+          </div>
+          <div class="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-[#1e2d3d] bg-[#161b27]/60">
+            <div class="w-9 h-9 rounded-xl bg-violet-900/30 border border-violet-800/40 flex items-center justify-center text-violet-400 font-bold text-sm">3</div>
+            <p class="text-sm font-medium text-slate-300">Ensemble Classification</p>
+            <p class="text-xs text-slate-400 leading-relaxed">MLP + CNN-V3 + BiLSTM weighted ensemble prediction</p>
+          </div>
+        </div>
+      </template>
 
-      <div class="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-[#1e2d3d] bg-[#161b27]/60">
-        <div class="w-9 h-9 rounded-xl bg-violet-900/30 border border-violet-800/40 flex items-center justify-center text-violet-400 font-bold text-sm">2</div>
-        <p class="text-sm font-medium text-slate-300">Feature Extraction</p>
-        <p class="text-xs text-slate-400 leading-relaxed">DEX image encoding, API call graph, manifest parsing</p>
-      </div>
-
-      <div class="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-[#1e2d3d] bg-[#161b27]/60">
-        <div class="w-9 h-9 rounded-xl bg-violet-900/30 border border-violet-800/40 flex items-center justify-center text-violet-400 font-bold text-sm">3</div>
-        <p class="text-sm font-medium text-slate-300">Ensemble Classification</p>
-        <p class="text-xs text-slate-400 leading-relaxed">MLP + CNN-V3 + BiLSTM weighted ensemble prediction</p>
-      </div>
+      <template x-if="tab === 'features'">
+        <div class="contents">
+          <div class="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-[#1e2d3d] bg-[#161b27]/60">
+            <div class="w-9 h-9 rounded-xl bg-violet-900/30 border border-violet-800/40 flex items-center justify-center text-violet-400 font-bold text-sm">1</div>
+            <p class="text-sm font-medium text-slate-300">PNG — DEX Image</p>
+            <p class="text-xs text-slate-400 leading-relaxed">64×64 RGB semantic encoding of DEX bytecode</p>
+          </div>
+          <div class="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-[#1e2d3d] bg-[#161b27]/60">
+            <div class="w-9 h-9 rounded-xl bg-violet-900/30 border border-violet-800/40 flex items-center justify-center text-violet-400 font-bold text-sm">2</div>
+            <p class="text-sm font-medium text-slate-300">JSON — API Sequence</p>
+            <p class="text-xs text-slate-400 leading-relaxed">Token array or space-separated string (max 512)</p>
+          </div>
+          <div class="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-[#1e2d3d] bg-[#161b27]/60">
+            <div class="w-9 h-9 rounded-xl bg-violet-900/30 border border-violet-800/40 flex items-center justify-center text-violet-400 font-bold text-sm">3</div>
+            <p class="text-sm font-medium text-slate-300">CSV — Manifest Features</p>
+            <p class="text-xs text-slate-400 leading-relaxed">400 binary manifest/permission columns, one row</p>
+          </div>
+        </div>
+      </template>
 
     </div>
 
