@@ -17,9 +17,9 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Suppress TensorFlow C++ logs before TF is imported anywhere.
-os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 # Suppress absl (used by TF/Keras internally).
-os.environ.setdefault("ABSL_MIN_LOG_LEVEL", "3")
+os.environ["ABSL_MIN_LOG_LEVEL"] = "3"
 
 
 # Quick-start development settings - unsuitable for production
@@ -154,8 +154,11 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {
+        # Explicit WARNING floor so that child-logger records that propagate
+        # up cannot bypass the parent logger's ERROR gate on this handler.
         "console": {
             "class": "logging.StreamHandler",
+            "level": "WARNING",
         },
     },
     "root": {
@@ -164,11 +167,16 @@ LOGGING = {
     },
     "loggers": {
         # Django request errors (500s) still reach the console.
-        "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": False},
-        # Silence the heaviest offenders explicitly.
-        "tensorflow":     {"handlers": ["console"], "level": "ERROR", "propagate": False},
-        "absl":           {"handlers": ["console"], "level": "ERROR", "propagate": False},
-        "androguard":     {"handlers": ["console"], "level": "ERROR", "propagate": False},
-        "androguard.core":{"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "django.request":           {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        # Silence the heaviest offenders — parent + key child loggers.
+        "tensorflow":               {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "keras":                    {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "absl":                     {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "androguard":               {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "androguard.core":          {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "androguard.misc":          {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "androguard.core.apk":      {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "androguard.core.bytecodes":{"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "androguard.decompile":     {"handlers": ["console"], "level": "ERROR", "propagate": False},
     },
 }

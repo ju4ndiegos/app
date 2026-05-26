@@ -120,6 +120,17 @@ def direct_upload(request):
 
         prediction = predict_ensemble(tab_row, str(img_path), sequence)
 
+        AnalysisResult.objects.update_or_create(
+            apk_hash=h,
+            defaults={
+                "label":            label,
+                "image":            rel_img,
+                "sequence_preview": " ".join(sequence.split()[:100]),
+                "tabular_json":     tab_row,
+                "prediction_json":  prediction,
+            },
+        )
+
     except Exception as exc:
         return render(request, "pipeline/upload.html", {
             "form": APKUploadForm(),
@@ -128,16 +139,6 @@ def direct_upload(request):
             "direct_error": f"Could not process files: {exc}",
         })
 
-    AnalysisResult.objects.update_or_create(
-        apk_hash=h,
-        defaults={
-            "label":            label,
-            "image":            rel_img,
-            "sequence_preview": " ".join(sequence.split()[:100]),
-            "tabular_json":     tab_row,
-            "prediction_json":  prediction,
-        },
-    )
     return redirect("result", apk_hash=h)
 
 

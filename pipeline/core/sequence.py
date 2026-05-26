@@ -7,6 +7,8 @@ to produce a space-separated token sequence of method names (max 512 tokens).
 Fallback (no androguard): scans the DEX string pool for lowercase identifiers.
 """
 
+import contextlib
+import io
 import re
 import struct
 import zipfile
@@ -25,7 +27,8 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 def _extract_androguard(apk_path: str) -> list[str]:
-    _, _, dx = AnalyzeAPK(apk_path)
+    with contextlib.redirect_stderr(io.StringIO()):
+        _, _, dx = AnalyzeAPK(apk_path)
     visited: set[str] = set()
     tokens: list[str] = []
 
