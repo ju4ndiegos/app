@@ -78,7 +78,7 @@
   <!-- ── APK hash row ────────────────────────────────────── -->
   <div class="glass-card py-3 flex items-center gap-3">
     <span class="text-[10px] text-slate-500 uppercase tracking-widest flex-shrink-0">SHA-256</span>
-    <code class="font-mono text-xs sm:text-sm text-slate-300 flex-1 min-w-0 truncate"
+    <code class="apk-hash font-mono text-xs sm:text-sm text-slate-300 flex-1 min-w-0 truncate"
           style="font-family: 'JetBrains Mono', monospace">{{ obj.apk_hash }}</code>
     <button class="text-[11px] px-2.5 py-1 rounded-lg border border-[#1e2d3d] hover:border-violet-600 transition-colors text-slate-400 flex-shrink-0"
             x-data="{ copied: false }"
@@ -330,11 +330,15 @@
   </div>
 
   <!-- ── Metadata footer row ─────────────────────────────── -->
-  <div class="flex flex-wrap items-center gap-x-6 gap-y-2 py-4 border-t border-[#1e2d3d] text-xs text-slate-500">
+  <div class="flex flex-wrap items-center gap-x-6 gap-y-3 py-4 border-t border-[#1e2d3d] text-xs text-slate-500">
     <div><span class="text-slate-600">Analyzed</span> {{ obj.created_at|date:"Y-m-d H:i" }} UTC</div>
     <div><span class="text-slate-600">Hash</span> <code class="font-mono text-slate-400" style="font-family:'JetBrains Mono',monospace">{{ obj.apk_hash|slice:":16" }}…</code></div>
     <div><span class="text-slate-600">Label</span> {{ obj.label }}</div>
-    <a href="{% url 'upload' %}" class="ml-auto text-violet-400 hover:text-violet-300 transition-colors">
+    <a href="{% url 'upload' %}"
+       class="sm:ml-auto w-full sm:w-auto text-center py-2.5 sm:py-0 px-4 sm:px-0
+              rounded-xl sm:rounded-none border sm:border-0 border-violet-800/40 sm:border-transparent
+              bg-violet-900/20 sm:bg-transparent
+              text-violet-400 hover:text-violet-300 transition-colors font-medium sm:font-normal">
       ← Analyze another APK
     </a>
   </div>
@@ -458,7 +462,7 @@
           border: { display: false }
         }
       },
-      layout: { padding: { right: 55 } }
+      layout: { padding: { right: window.innerWidth < 640 ? 40 : 55 } }
     },
     plugins: [glowLabelPlugin]
   });

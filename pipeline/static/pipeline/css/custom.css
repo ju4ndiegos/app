@@ -241,3 +241,37 @@
 
 /* ── Misc utilities ──────────────────────────────── */
 [x-cloak] { display: none !important; }
+
+/* ── Mobile responsive overrides ────────────────── */
+@media (max-width: 640px) {
+  .glass-card {
+    padding: 1rem;
+    border-radius: 0.75rem;
+  }
+
+  /* Prevent hash code from overflowing on narrow screens */
+  code.apk-hash {
+    font-size: 0.65rem;
+    word-break: break-all;
+    white-space: normal;
+  }
+
+  /* Chart area: reduce right padding so labels don't clip */
+  canvas#probChart {
+    max-height: 220px;
+  }
+
+  /* Make tab buttons text fit on 375px */
+  .tab-btn {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.62rem;
+  }
+
+  /* Tighten the verdict banner */
+  .verdict-banner {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

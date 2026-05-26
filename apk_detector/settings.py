@@ -33,7 +33,6 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = ["https://app-production-9178.up.railway.app"]
-STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Application definition
@@ -124,7 +123,20 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+# WhiteNoise: serve files via finders even if collectstatic hasn't run yet.
+WHITENOISE_USE_FINDERS = True
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    # Compress static files when collectstatic runs; no manifest required,
+    # so the app works even if collectstatic hasn't been run yet.
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
