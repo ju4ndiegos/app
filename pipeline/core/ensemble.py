@@ -224,8 +224,10 @@ def _infer_image(image_path: str) -> dict:
 
 def _infer_sequence(sequence: str, max_len: int = 300) -> dict:
     b = _load_sequence_bundle()
+    vocab_size = b["model"].encoder_b["emb"].weight.shape[0]
     tokens = sequence.split()
-    encoded = [b["vocab"].get(tok, 1) for tok in tokens[:max_len]]
+    # Clamp indices: vocab dict (10001 entries) exceeds model vocab_size (5000)
+    encoded = [min(b["vocab"].get(tok, 1), vocab_size - 1) for tok in tokens[:max_len]]
     padded = encoded + [0] * (max_len - len(encoded))
     x_seq = torch.LongTensor(padded).unsqueeze(0).to(_DEVICE)
     with torch.no_grad():
